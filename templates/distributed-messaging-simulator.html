@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação de Mensagens Distribuídas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Simulação de Mensagens Distribuídas</h1>
+        
+        <div class="simulation-area">
+            <div class="processes-section">
+                <h2>Emissores</h2>
+                <div class="group" id="emitters"></div>
+                <h2>Receptores</h2>
+                <div class="group" id="receivers"></div>
+            </div>
+        </div>
+
+        <div class="status-and-control-section">
+            <div class="status-section">
+                <h2>Status dos Processos</h2>
+                <div id="process-status-content"></div>
+            </div>
+            <div class="simulation-controls">
+                <button onclick="step()">Avançar</button>
+            </div>
+        </div>
+
+        <div class="messages-section">
+            <h2>Mensagens</h2>
+            <div class="messages" id="messages"></div>
+        </div>
+
+        <div class="queues-section">
+            <h2>Filas dos Receptores</h2>
+            <table id="receiver-queues">
+                <thead>
+                    <tr>
+                        <th>Receptor</th>
+                        <th>Mensagens na Fila</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="processed-messages-section">
+            <h2>Mensagens Processadas pelos Receptores</h2>
+            <table id="processed-messages">
+                <thead>
+                    <tr>
+                        <th>Receptor</th>
+                        <th>Mensagens Processadas</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="process-data" data-num-processes="{{ num_processes }}" style="display: none;"></div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
