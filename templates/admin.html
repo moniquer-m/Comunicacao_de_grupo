@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área do Administrador</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .user-actions form {
+            margin: 0;
+        }
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        .alert-success {
+            color: #3c763d;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+        .alert-error {
+            color: #a94442;
+            background-color: #f2dede;
+            border-color: #ebccd1;
+        }
+        .filter-form {
+            margin-bottom: 20px;
+        }
+        form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="password"], input[type="email"], select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 20px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input[type="submit"], .button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        input[type="submit"]:hover, .button:hover {
+            background-color: #0056b3;
+        }
+        .password-container {
+            position: relative;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            margin-top: 0.5%;
+        }
+        .toggle-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .toggle-btn:hover {
+            background-color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .password-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Área do Administrador</h1>
+            <a href="{{ url_for('dashboard') }}" class="button">Voltar para o Dashboard</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h2>Adicionar Novo Usuário</h2>
+        <form action="{{ url_for('add_user') }}" method="post">
+            <label for="username">Nome de Usuário:</label>
+            <input type="text" id="username" name="username" required>
+
+            <div class="password-container">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+                <span class="password-toggle" onclick="togglePassword()">👁️</span>
+            </div>
+            <p class="password-info">A senha deve ter pelo menos 8 caracteres, incluindo maiúsculas, minúsculas, números e caracteres especiais.</p>
+
+            <label for="full_name">Nome Completo:</label>
+            <input type="text" id="full_name" name="full_name" required>
+
+            <label for="email">E-mail:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="role">Função:</label>
+            <select id="role" name="role" required>
+                <option value="cliente">Cliente</option>
+                <option value="pql">PQL</option>
+                <option value="admin">Administrador</option>
+            </select>
+
+            <input type="submit" value="Adicionar Usuário">
+        </form>
+
+        <h2>Lista de Administradores</h2>
+        <button id="toggleAdminTable" class="toggle-btn">Mostrar/Ocultar Tabela de Administradores</button>
+        <div id="adminTableSection" class="hidden">
+            <div class="filter-form">
+                <form action="{{ url_for('admin') }}" method="get">
+                    <label for="admin_filter">Filtrar administradores por username:</label>
+                    <input type="text" id="admin_filter" name="admin_filter" value="{{ request.args.get('admin_filter', '') }}">
+                    <input type="submit" value="Filtrar">
+                </form>
+            </div>
+            <table>
+                <tr>
+                    <th>Nome de Usuário</th>
+                    <th>Nome Completo</th>
+                    <th>E-mail</th>
+                    <th>Função</th>
+                </tr>
+                {% for username, user_data in users.items() if user_data.role in ['admin', 'super_admin'] and (not request.args.get('admin_filter') or request.args.get('admin_filter').lower() in username.lower()) %}
+                <tr>
+                    <td>{{ username }}</td>
+                    <td>{{ user_data.full_name }}</td>
+                    <td>{{ user_data.email }}</td>
+                    <td>{{ user_data.role }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <h2>Lista de Clientes e PQLs</h2>
+        <div class="filter-form">
+            <form action="{{ url_for('admin') }}" method="get">
+                <label for="user_filter">Filtrar clientes e PQLs por username:</label>
+                <input type="text" id="user_filter" name="user_filter" value="{{ request.args.get('user_filter', '') }}">
+                <input type="submit" value="Filtrar">
+            </form>
+        </div>
+        <table>
+            <tr>
+                <th>Nome de Usuário</th>
+                <th>Nome Completo</th>
+                <th>E-mail</th>
+                <th>Função</th>
+                <th>Ações</th>
+            </tr>
+            {% for username, user_data in users.items() if user_data.role in ['cliente', 'pql'] and (not request.args.get('user_filter') or request.args.get('user_filter').lower() in username.lower()) %}
+            <tr>
+                <td>{{ username }}</td>
+                <td>{{ user_data.full_name }}</td>
+                <td>{{ user_data.email }}</td>
+                <td>{{ user_data.role }}</td>
+                <td class="user-actions">
+                    <form action="{{ url_for('update_user', username=username) }}" method="post">
+                        <select name="role">
+                            <option value="cliente" {% if user_data.role == 'cliente' %}selected{% endif %}>Cliente</option>
+                            <option value="pql" {% if user_data.role == 'pql' %}selected{% endif %}>PQL</option>
+                        </select>
+                        <input type="submit" value="Alterar Tipo">
+                    </form>
+                    <form action="{{ url_for('delete_user', username=username) }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir este usuário?');">
+                        <input type="submit" value="Excluir">
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <script>
+        function togglePassword() {
+            var passwordInput = document.getElementById("password");
+            var toggleIcon = document.querySelector(".password-toggle");
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                toggleIcon.textContent = "🔒";
+            } else {
+                passwordInput.type = "password";
+                toggleIcon.textContent = "👁️";
+            }
+        }
+
+        document.getElementById('toggleAdminTable').addEventListener('click', function() {
+            var adminTableSection = document.getElementById('adminTableSection');
+            if (adminTableSection.classList.contains('hidden')) {
+                adminTableSection.classList.remove('hidden');
+            } else {
+                adminTableSection.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
