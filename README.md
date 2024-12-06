@@ -22,9 +22,10 @@ Para configurar e executar este projeto em sua máquina local, siga os passos ab
 
 1. **Clone o repositório** (ou baixe o código-fonte):
 2. **Crie um ambiente virtual** (recomendado):
+```
 python -m venv venv
-
-3. **Ative o ambiente virtual**:
+```
+4. **Ative o ambiente virtual**:
 - No Windows:
   ```
   venv\Scripts\activate
@@ -34,12 +35,20 @@ python -m venv venv
   source venv/bin/activate
   ```
 4. **Instale as dependências necessárias**:
+```
 pip install flask
+```
+```
 pip install flask-login
+```
+```
 pip install passlib
-5. **Execute a aplicação**:
+```
+6. **Execute a aplicação**:
+```
 python app.py
-6. **Acesse a aplicação**:
+```
+8. **Acesse a aplicação**:
 Abra seu navegador e vá para `http://localhost:5000`
 
 ### Cliente (Frontend)
