@@ -8,7 +8,39 @@ Este projeto integra um sistema robusto de autenticação e gerenciamento de usu
 2. Uma ferramenta educacional interativa para compreensão de sistemas distribuídos.
 3. Uma plataforma que demonstra a implementação prática de conceitos de segurança e distribuição de sistemas.
 
-## Requisitos Funcionais
+## Instalação e Configuração
+
+Para configurar e executar este projeto em sua máquina local, siga os passos abaixo:
+
+### Pré-requisitos
+
+- Python 3.7 ou superior
+- pip (gerenciador de pacotes do Python)
+- Git (opcional, para clonar o repositório)
+
+### Passos de Instalação
+
+1. **Clone o repositório** (ou baixe o código-fonte):
+2. **Crie um ambiente virtual** (recomendado):
+python -m venv venv
+
+3. **Ative o ambiente virtual**:
+- No Windows:
+  ```
+  venv\Scripts\activate
+  ```
+- No macOS e Linux:
+  ```
+  source venv/bin/activate
+  ```
+4. **Instale as dependências necessárias**:
+pip install flask
+pip install flask-login
+pip install passlib
+5. **Execute a aplicação**:
+python app.py
+6. **Acesse a aplicação**:
+Abra seu navegador e vá para `http://localhost:5000`
 
 ### Cliente (Frontend)
 
@@ -56,6 +88,26 @@ A comunicação entre cliente e servidor é baseada em requisições HTTP/HTTPS,
    - POST: `/step` (avanço da simulação)
 
 ### Diagrama de Sequência (Simulador)
+Cliente Servidor (Flask) PrivilegeBasedAlgorithm | | | | Iniciar Simulação | | |----------------------------->| | | | Criar instância | | |------------------------------->| | | | | Solicitar passo (AJAX) | | |----------------------------->| | | | Chamar step() | | |------------------------------->| | | | | | Simular falhas/recuperações | | | <--------------------------->| | | | | | Gerar mensagem | | | <--------------------------->| | | | | | Broadcast mensagem | | | <--------------------------->| | | | | | Entregar mensagens | | | <--------------------------->| | | | | | Passar token | | | <--------------------------->| | | | | | Retornar estado da simulação | | |<-------------------------------| | | | | Resposta JSON com | | | estado da simulação | | |<-----------------------------| | | | | | Atualizar interface | | |----------------------------->| | | | |
+
+
+Este diagrama de sequência ilustra o fluxo básico de interação entre o Cliente (navegador do usuário), o Servidor (aplicação Flask) e o algoritmo PrivilegeBasedAlgorithm durante um ciclo de simulação.
+
+1. O Cliente inicia a simulação acessando a página.
+2. O Servidor cria uma instância do PrivilegeBasedAlgorithm.
+3. O Cliente solicita um passo da simulação via AJAX.
+4. O Servidor chama o método `step()` do algoritmo.
+5. O algoritmo executa várias etapas internas:
+   - Simula falhas e recuperações de processos
+   - Gera uma nova mensagem (se aplicável)
+   - Realiza o broadcast da mensagem
+   - Entrega mensagens aos processos ativos
+   - Passa o token para o próximo processo
+6. O algoritmo retorna o estado atual da simulação ao Servidor.
+7. O Servidor envia a resposta JSON com o estado da simulação ao Cliente.
+8. O Cliente atualiza a interface com as novas informações.
+
+Este ciclo se repete cada vez que o Cliente solicita um novo passo da simulação.
 
 ## Descrição do Serviço no Servidor
 
@@ -110,7 +162,7 @@ class Process:
         return delivered
 ```
 
-###Algoritmo Baseado em Privilégio (Simplificado)
+### Algoritmo Baseado em Privilégio (Simplificado)
 ```python
 class PrivilegeBasedAlgorithm:
     def __init__(self, num_processes):
@@ -156,7 +208,7 @@ class PrivilegeBasedAlgorithm:
     def get_simulation_state(self):
         # Retorna o estado atual da simulação
 ```
-###Rota Flask Principal para o Simulador
+### Rota Flask Principal para o Simulador
 ```python
 @app.route('/step')
 @login_required
@@ -168,3 +220,67 @@ def step():
     result = algorithm.step()
     return jsonify(result)
 ```
+## Requisitos funcionais
+
+### Sistema de Autenticação e Gerenciamento de Usuários
+
+1. **Registro de Usuários**
+   - O sistema deve permitir que novos usuários se registrem fornecendo nome de usuário, senha e e-mail.
+   - As senhas devem ser armazenadas de forma segura utilizando o algoritmo de hash Argon2.
+
+2. **Autenticação de Usuários**
+   - Os usuários devem poder fazer login usando seu nome de usuário e senha.
+   - O sistema deve validar as credenciais e criar uma sessão segura para usuários autenticados.
+
+3. **Gerenciamento de Perfil**
+   - Usuários autenticados devem poder visualizar e editar suas informações de perfil.
+   - Deve ser possível alterar a senha, mantendo a segurança do armazenamento.
+
+4. **Controle de Acesso Baseado em Papéis**
+   - O sistema deve suportar diferentes níveis de acesso: admin, cliente e PQL.
+   - Cada papel deve ter permissões específicas dentro do sistema.
+
+5. **Logout**
+   - Os usuários devem poder encerrar sua sessão de forma segura.
+
+6. **Painel Administrativo**
+   - Usuários com papel de admin devem ter acesso a um painel para gerenciar outros usuários.
+   - Funcionalidades de CRUD (Criar, Ler, Atualizar, Deletar) para contas de usuário. 
+
+### Simulador de Mensagens Distribuídas
+
+7. **Inicialização da Simulação**
+   - Usuários com papel de cliente devem poder iniciar uma nova simulação de sistema distribuído.
+   - A simulação deve começar com um número predefinido de processos.
+
+8. **Visualização do Estado da Simulação**
+   - A interface deve exibir o estado atual de cada processo na simulação.
+   - Deve mostrar qual processo detém o token atual.
+
+9. **Geração e Transmissão de Mensagens**
+   - O sistema deve simular a geração de mensagens por processos ativos.
+   - As mensagens devem ser transmitidas para outros processos de acordo com o algoritmo baseado em privilégio.
+
+10. **Simulação de Falhas e Recuperações**
+    - O sistema deve simular falhas aleatórias em processos.
+    - O sistema força o proceso 1 a falhar para demonstrar a ordem na fila.
+    - Processos falhos devem poder se recuperar após um período.
+
+11. **Visualização de Filas de Mensagens**
+    - Para cada processo, o sistema deve exibir as filas de mensagens recebidas e não processadas.
+
+12. **Execução Passo a Passo**
+    - Os usuários devem poder avançar a simulação um passo de cada vez.
+    - Cada passo deve atualizar o estado global da simulação.
+
+13. **Histórico de Mensagens**
+    - O sistema deve manter e exibir um histórico das mensagens processadas por cada processo.
+
+14. **Interface Responsiva**
+    - A interface do usuário deve se atualizar em tempo real para refletir o estado atual da simulação.
+
+15. **Controle de Acesso ao Simulador**
+    - Apenas usuários com papel de cliente devem ter acesso ao simulador de mensagens distribuídas.
+
+18. **Feedback Visual**
+    - O sistema deve fornecer feedback visual claro sobre eventos importantes, como falhas de processos ou passagem de token.
